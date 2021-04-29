@@ -30,7 +30,14 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    dataBinding {
+        enabled = true
+    }
 }
+
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
 
 dependencies {
 
@@ -48,4 +55,13 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    // using ROOM
+    def room_version = "2.2.6"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation "androidx.room:room-ktx:$room_version"
+    // optional - Test helpers
+    testImplementation "androidx.room:room-testing:$room_version"
 }
