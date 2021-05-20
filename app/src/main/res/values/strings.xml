@@ -1,13 +1,21 @@
 <resources>
+    <string name="facebook_app_id">468703311102621</string>
+    <string name="fb_login_protocol_scheme">fb468703311102621</string>
     <string name="app_name">TodoList</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_title">Log in</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
+
+    <string name="action_edit_list">Edit list</string>
+    <string name="action_delete_list">Delete list</string>
 
     <string name="menu_home">Home</string>
-    <string name="menu_gallery">Gallery</string>
-    <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_list">List</string>
+    <string name="menu_add_list">Add list</string>
+    <string name="default_list">Default list</string>
+    <string name="default_all">All items</string>
+
+    <string name="add_list_dialog_title">Please add the list name</string>
+    <string name="add_list_title_warning">Task name can not be empty!</string>
 </resources>
