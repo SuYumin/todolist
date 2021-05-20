@@ -1,13 +1,32 @@
 package com.yumin.todolist.ui.home
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.util.Log
+import androidx.lifecycle.*
+import com.yumin.todolist.data.ListInfo
+import com.yumin.todolist.data.ItemInfo
+import com.yumin.todolist.data.TodoListRepository
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(private val repository: TodoListRepository) : ViewModel() {
+    val allItemsInfo: LiveData<List<ItemInfo>> = repository.allItemInfo.asLiveData()
+    val allList: LiveData<List<ListInfo>> = repository.allListInfo.asLiveData()
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
+    companion object{
+        val TAG: String = HomeViewModel.javaClass.toString()
     }
-    val text: LiveData<String> = _text
+
+    fun getLoadingStatus(): LiveData<Boolean>{
+        Log.d(TAG,"[getLoadingStatus]")
+        var status = MediatorLiveData<Boolean>()
+        status.addSource(allItemsInfo) {
+            status.value = checkLoadingStatus()
+        }
+        status.addSource(allList) {
+            status.value = checkLoadingStatus()
+        }
+        return status
+    }
+
+    private fun checkLoadingStatus(): Boolean {
+        return allItemsInfo.value.isNullOrEmpty() && allList.value.isNullOrEmpty()
+    }
 }
