@@ -8,18 +8,17 @@
     <fragment
         android:id="@+id/nav_home"
         android:name="com.yumin.todolist.ui.home.HomeFragment"
-        android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+    </fragment>
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.yumin.todolist.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_list_view"
+        android:name="com.yumin.todolist.ui.item_list.ItemListFragment"
+        tools:layout="@layout/fragment_todo_list" >
+    </fragment>
 
     <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.yumin.todolist.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        android:id="@+id/nav_add_list"
+        android:name="com.yumin.todolist.ui.navigation_list.NavListFragment"
+        tools:layout="@layout/fragment_add_list" />
 </navigation>
