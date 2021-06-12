@@ -12,29 +12,30 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.yumin.todolist.LogUtils
 import com.yumin.todolist.R
-import com.yumin.todolist.data.ListInfo
-import com.yumin.todolist.data.ItemInfo
+import com.yumin.todolist.data.TodoList
+import com.yumin.todolist.data.TodoItem
 import com.yumin.todolist.ui.color_view.ColorView
 import com.yumin.todolist.ui.item_list.ItemListAdapter
 
-class AllListAdapter(val itemListener: ItemListener): ListAdapter<ListInfo,AllListAdapter.ViewHolder>(AllListDiffCallBack()) {
-    private var mItemsList: MutableMap<Int,List<ItemInfo>>? = null
+class AllListAdapter(val itemListener: ItemListener): ListAdapter<TodoList,AllListAdapter.ViewHolder>(AllListDiffCallBack()) {
+    private var mItemsList: MutableMap<Int,List<TodoItem>>? = null
     private var mContext: Context? = null
 
-    fun setTodoItemsDataSet(data: List<ItemInfo>){
+    fun setTodoItemsDataSet(data: List<TodoItem>){
         data?.apply {
             // remap todolist map
-            mItemsList = mutableMapOf<Int,List<ItemInfo>>()
+            mItemsList = mutableMapOf<Int,List<TodoItem>>()
             for (todoItem in this) {
                 val key = todoItem.listId
                 if (mItemsList!!.containsKey(key)){
-                    val tmpList = mutableListOf<ItemInfo>()
+                    val tmpList = mutableListOf<TodoItem>()
                     mItemsList!![key]?.let { it1 -> tmpList.addAll(it1) }
                     tmpList.add(todoItem)
                     mItemsList!![key] = tmpList
                 } else {
-                    val itemList = mutableListOf<ItemInfo>()
+                    val itemList = mutableListOf<TodoItem>()
                     itemList.add(todoItem)
                     mItemsList!![key] = itemList
                 }
@@ -60,15 +61,15 @@ class AllListAdapter(val itemListener: ItemListener): ListAdapter<ListInfo,AllLi
             itemListRecyclerView.setItemViewCacheSize(20)
         }
 
-        fun setOnLayoutClick(listInfo: ListInfo, itemListener: ItemListener) {
+        fun setOnLayoutClick(todoList: TodoList, itemListener: ItemListener) {
             list_info_view.setOnClickListener {
-                itemListener.onItemLayoutClick(listInfo)
+                itemListener.onItemLayoutClick(todoList)
             }
 
             itemListRecyclerView.setOnTouchListener { view, motionEvent ->
                 when(motionEvent.action) {
                     MotionEvent.ACTION_DOWN -> {
-                        itemListener.onItemLayoutClick(listInfo)
+                        itemListener.onItemLayoutClick(todoList)
                     }
                 }
                 view?.onTouchEvent(motionEvent) ?: true
@@ -87,13 +88,13 @@ class AllListAdapter(val itemListener: ItemListener): ListAdapter<ListInfo,AllLi
             holder.listName.text = getItem(position).name
             holder.listColorView.colorValue = getItem(position).color
 
-            var dataSet = mutableListOf<ItemInfo>()
+            var dataSet = mutableListOf<TodoItem>()
             // re-list todo_items by list id
             mItemsList?.get(getItem(position).id)?.let { it ->
                 dataSet.addAll(it)
             }
             dataSet.reverse()
-            Log.d("[AllListAdapter]","dataset key = ${getItem(position).id} , values = ${dataSet.toString()}")
+            LogUtils.logD("[AllListAdapter]","dataset key = ${getItem(position).id} , values = ${dataSet.toString()}")
             holder.adapter.submitList(dataSet)
 
             itemListener?.apply {
@@ -104,15 +105,15 @@ class AllListAdapter(val itemListener: ItemListener): ListAdapter<ListInfo,AllLi
 }
 
 interface ItemListener{
-    fun onItemLayoutClick(listInfo: ListInfo)
+    fun onItemLayoutClick(todoList: TodoList)
 }
 
-class AllListDiffCallBack : DiffUtil.ItemCallback<ListInfo>() {
-    override fun areItemsTheSame(oldItem: ListInfo, newItem: ListInfo): Boolean {
+class AllListDiffCallBack : DiffUtil.ItemCallback<TodoList>() {
+    override fun areItemsTheSame(oldItem: TodoList, newItem: TodoList): Boolean {
         return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: ListInfo, newItem: ListInfo): Boolean {
+    override fun areContentsTheSame(oldItem: TodoList, newItem: TodoList): Boolean {
         return oldItem == newItem
     }
 }

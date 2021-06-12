@@ -12,6 +12,12 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="alertDialogTheme">@style/AlertDialogCustom</item>
+    </style>
+
+    <style name="AlertDialogCustom" parent="@style/Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:colorAccent">@color/black</item>
     </style>
 
     <style name="Theme.TodoList.NoActionBar">
@@ -22,4 +28,12 @@
     <style name="Theme.TodoList.AppBarOverlay" parent="ThemeOverlay.AppCompat.ActionBar" />
 
     <style name="Theme.TodoList.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="BottomSheetDialogStyle" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/bottomSheetBackground</item>
+    </style>
+
+    <style name="bottomSheetBackground" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bottom_sheet_round_background</item>
+    </style>
 </resources>

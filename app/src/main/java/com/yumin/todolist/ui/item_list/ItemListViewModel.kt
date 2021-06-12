@@ -4,34 +4,34 @@ import androidx.lifecycle.*
 import com.yumin.todolist.data.*
 import kotlinx.coroutines.launch
 
-class ItemListViewModel(private val repository: TodoListRepository) : ViewModel() {
-    val itemInfoList: LiveData<List<ItemInfo>>? = repository?.allItemInfo.asLiveData()
-    val listItemList: LiveData<List<ListInfo>>? = repository?.allListInfo.asLiveData()
+class ItemListViewModel(private val roomRepository: RoomRepository) : ViewModel() {
+    val itemInfoList: LiveData<List<TodoItem>>? = roomRepository?.allItem.asLiveData()
+    val listItemTodoList: LiveData<List<TodoList>>? = roomRepository?.allList.asLiveData()
 
     private val listInfoById: MutableLiveData<Int> = MutableLiveData()
     var listInfo = Transformations.switchMap(listInfoById){
-        repository.getListById(it).asLiveData()
+        roomRepository.getListById(it).asLiveData()
     }
 
     private val todoListById: MutableLiveData<Int> = MutableLiveData()
     var unCompleteTodoItemList = Transformations.switchMap(todoListById){
-        repository.getUnCompleteItemsByListId(it).asLiveData()
+        roomRepository.getUnCompleteItemsByListId(it).asLiveData()
     }
 
     var completeTodoItemList = Transformations.switchMap(todoListById){
-        repository.getCompleteItemsByListId(it).asLiveData()
+        roomRepository.getCompleteItemsByListId(it).asLiveData()
     }
 
     var todoItemList = Transformations.switchMap(todoListById) {
-        repository.getItemsByListId(it).asLiveData()
+        roomRepository.getItemsByListId(it).asLiveData()
     }
 
-    fun updateTodoItem(itemInfo: ItemInfo) = viewModelScope.launch {
-        repository.updateTodoItem(itemInfo)
+    fun updateTodoItem(todoItem: TodoItem) = viewModelScope.launch {
+        roomRepository.updateItem(todoItem)
     }
 
-    fun insertTodoItem(itemInfo: ItemInfo) = viewModelScope.launch {
-        repository.insertTodoItem(itemInfo)
+    fun insertTodoItem(todoItem: TodoItem) = viewModelScope.launch {
+        roomRepository.insertItem(todoItem)
     }
 
     fun updateListInfoQueryId(id: Int){
@@ -43,10 +43,10 @@ class ItemListViewModel(private val repository: TodoListRepository) : ViewModel(
     }
 
     fun deleteList(id: Int){
-        repository.deleteListById(id)
+        roomRepository.deleteListById(id)
     }
 
-    fun deleteItem(itemInfo: ItemInfo) {
-        repository.deleteItem(itemInfo)
+    fun deleteItem(todoItem: TodoItem) {
+        roomRepository.deleteItem(todoItem)
     }
 }

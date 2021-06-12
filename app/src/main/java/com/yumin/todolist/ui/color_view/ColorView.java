@@ -51,7 +51,6 @@ public class ColorView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Log.d("[ColorView]","[onDraw]");
         float cx = getWidth() / 2.0f;
         float cy = getHeight() / 2.0f;
         float radius = Math.min(getWidth(), getHeight());

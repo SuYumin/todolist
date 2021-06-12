@@ -1,7 +1,6 @@
 package com.yumin.todolist.ui.home
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,19 +11,17 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.yumin.todolist.MainActivity
-import com.yumin.todolist.R
-import com.yumin.todolist.TodoListApplication
-import com.yumin.todolist.ViewModelFactory
-import com.yumin.todolist.data.ListInfo
+import com.yumin.todolist.*
+import com.yumin.todolist.data.TodoList
 
-class HomeFragment : Fragment(), ItemListener {
+class HomeFragment : Fragment(), ItemListener, MainActivity.SignOutListener {
     private lateinit var mListAdapter: AllListAdapter
     private lateinit var mNoItemLayout: ConstraintLayout
     private lateinit var mRecyclerView: RecyclerView
 
     private val mHomeViewModel: HomeViewModel by viewModels {
-        ViewModelFactory((activity?.application as TodoListApplication).repository)
+        ViewModelFactory((activity?.application as TodoListApplication).roomRepository
+            ,(activity?.application as TodoListApplication).firebaseRepository)
     }
 
     companion object {
@@ -33,6 +30,7 @@ class HomeFragment : Fragment(), ItemListener {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
+        (activity as MainActivity).setSignOutListener(this)
         mRecyclerView = root.findViewById(R.id.home_recyclerView)
         // set up adapter
         mListAdapter = AllListAdapter(this)
@@ -48,18 +46,17 @@ class HomeFragment : Fragment(), ItemListener {
 
 
     private fun observeViewModel(){
-        mHomeViewModel.allList.observe(viewLifecycleOwner, Observer {
-            Log.d(TAG, "allList it = "+it.size)
+        mHomeViewModel.allTodoList.observe(viewLifecycleOwner, Observer {
+            LogUtils.logD(TAG, "allList it = "+it.size)
             mListAdapter.submitList(it)
         })
 
-        mHomeViewModel.allItemsInfo.observe(viewLifecycleOwner, Observer {
-            Log.d(TAG, "allTodoItems it = "+it.size)
+        mHomeViewModel.allTodoItems.observe(viewLifecycleOwner, Observer {
+            LogUtils.logD(TAG, "allTodoItems it = "+it.size)
             mListAdapter.setTodoItemsDataSet(it)
         })
 
         mHomeViewModel.getLoadingStatus().observe(viewLifecycleOwner, Observer {
-            Log.d(TAG, "it = $it")
             if (it) {
                 mNoItemLayout.visibility = View.VISIBLE
                 mRecyclerView.visibility = View.INVISIBLE
@@ -70,12 +67,15 @@ class HomeFragment : Fragment(), ItemListener {
         })
     }
 
-    override fun onItemLayoutClick(listInfo: ListInfo) {
-        // switch to that fragment
+    override fun onItemLayoutClick(todoList: TodoList) {
+        // switch to fragment
         var bundle = Bundle()
-        bundle.putInt(MainActivity.KEY_CHOSEN_LIST_ID,listInfo.id)
+        bundle.putInt(MainActivity.KEY_CHOSEN_LIST_ID,todoList.id)
         findNavController().navigate(R.id.nav_list_view,bundle)
-        Log.d(TAG,"[onItemLayoutClick] MainActivity.CHOSEN_LIST_ID = ${listInfo.id}")
-//        MainActivity.CHOSEN_LIST_ID = listInfo.id
+        LogUtils.logD(TAG,"[onItemLayoutClick] MainActivity.CHOSEN_LIST_ID = ${todoList.id}")
+    }
+
+    override fun onDeleteAllItems() {
+        mHomeViewModel.deleteAllItems()
     }
 }

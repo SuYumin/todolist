@@ -1,32 +1,34 @@
 package com.yumin.todolist.ui.home
 
-import android.util.Log
 import androidx.lifecycle.*
-import com.yumin.todolist.data.ListInfo
-import com.yumin.todolist.data.ItemInfo
-import com.yumin.todolist.data.TodoListRepository
+import com.yumin.todolist.data.TodoList
+import com.yumin.todolist.data.TodoItem
+import com.yumin.todolist.data.RoomRepository
 
-class HomeViewModel(private val repository: TodoListRepository) : ViewModel() {
-    val allItemsInfo: LiveData<List<ItemInfo>> = repository.allItemInfo.asLiveData()
-    val allList: LiveData<List<ListInfo>> = repository.allListInfo.asLiveData()
+class HomeViewModel(private val roomRepository: RoomRepository) : ViewModel() {
+    val allTodoItems: LiveData<List<TodoItem>> = roomRepository.allItem.asLiveData()
+    val allTodoList: LiveData<List<TodoList>> = roomRepository.allList.asLiveData()
 
     companion object{
         val TAG: String = HomeViewModel.javaClass.toString()
     }
 
     fun getLoadingStatus(): LiveData<Boolean>{
-        Log.d(TAG,"[getLoadingStatus]")
         var status = MediatorLiveData<Boolean>()
-        status.addSource(allItemsInfo) {
+        status.addSource(allTodoItems) {
             status.value = checkLoadingStatus()
         }
-        status.addSource(allList) {
+        status.addSource(allTodoList) {
             status.value = checkLoadingStatus()
         }
         return status
     }
 
     private fun checkLoadingStatus(): Boolean {
-        return allItemsInfo.value.isNullOrEmpty() && allList.value.isNullOrEmpty()
+        return allTodoItems.value.isNullOrEmpty() && allTodoList.value.isNullOrEmpty()
+    }
+
+    fun deleteAllItems(){
+        roomRepository.deleteAll()
     }
 }

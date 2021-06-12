@@ -20,7 +20,7 @@ import com.yumin.todolist.MainActivity
 import com.yumin.todolist.R
 import com.yumin.todolist.TodoListApplication
 import com.yumin.todolist.ViewModelFactory
-import com.yumin.todolist.data.ListInfo
+import com.yumin.todolist.data.TodoList
 import com.yumin.todolist.ui.color_view.ColorSelectorDialog
 import com.yumin.todolist.ui.color_view.ColorView
 import com.yumin.todolist.ui.color_view.ColorViewInfo
@@ -29,10 +29,11 @@ import com.yumin.todolist.ui.color_view.ColorViewInfo
 class NavListFragment : Fragment() {
     private var mSelectedColor: Int = Color.parseColor("#e57373")
     private var mSelectedColorPosition: Int = 0
-    private lateinit var listInfo: ListInfo
+    private lateinit var todoList: TodoList
 
     private val addListViewModel: NavListViewModel by viewModels {
-        ViewModelFactory((activity?.application as TodoListApplication).repository)
+        ViewModelFactory((activity?.application as TodoListApplication).roomRepository,
+            (activity?.application as TodoListApplication).firebaseRepository)
     }
 
     override fun onCreateView(
@@ -48,14 +49,12 @@ class NavListFragment : Fragment() {
         listNameEditText.doOnTextChanged { text, start, before, count ->
             when(text.isNullOrEmpty()) {
                 true -> {
-                    Log.d("[doOnTextChanged]","isNullOrEmpty true")
                     checkFab.isEnabled = false
                     colorTextView.visibility = View.GONE
                     colorLinearLayout.visibility = View.GONE
                 }
 
                 false -> {
-                    Log.d("[doOnTextChanged]","isNullOrEmpty false")
                     checkFab.isEnabled = true
                     colorTextView.visibility = View.VISIBLE
                     colorLinearLayout.visibility = View.VISIBLE
@@ -65,7 +64,6 @@ class NavListFragment : Fragment() {
 
         val colorView: ColorView = root.findViewById(R.id.color_view)
         colorView.setOnClickListener {
-            Log.d("[AddListFragment]","[colorView] onClick")
             val colorSelectorDialog: ColorSelectorDialog? =
                 context?.let {
                     ColorSelectorDialog(
@@ -93,16 +91,27 @@ class NavListFragment : Fragment() {
 
         checkFab.setOnClickListener {
             if (arguments != null) {
-                listInfo.name = listNameEditText.text.toString()
-                listInfo.color = mSelectedColor!!
-                addListViewModel.updateListInfo(listInfo)
+                todoList.name = listNameEditText.text.toString()
+                todoList.color = mSelectedColor!!
+                addListViewModel.updateListInfo(todoList)
 
                 var bundle = Bundle()
-                bundle.putInt(MainActivity.KEY_CHOSEN_LIST_ID,listInfo.id)
+                bundle.putInt(MainActivity.KEY_CHOSEN_LIST_ID,todoList.id)
                 findNavController().navigate(R.id.nav_list_view,bundle)
             } else {
-                addListViewModel.insertList( ListInfo(name = listNameEditText.text.toString(), color = mSelectedColor!!))
-                findNavController().navigateUp()
+                addListViewModel.insertList(TodoList(name = listNameEditText.text.toString(), color = mSelectedColor!!, createdTime = System.currentTimeMillis()))
+                    .observe(viewLifecycleOwner,{
+                    var bundle = Bundle()
+                    bundle.putInt(MainActivity.KEY_CHOSEN_LIST_ID,it.toInt())
+                    findNavController().navigate(R.id.nav_list_view,bundle)
+
+                    if (findNavController().currentDestination?.id != R.id.nav_list_view) {
+                        val bundle = Bundle()
+                        bundle.putInt(MainActivity.KEY_CHOSEN_LIST_ID,it.toInt())
+                        findNavController().navigate(R.id.nav_list_view, bundle)
+                    }
+                    (activity as MainActivity).refreshList(it.toInt())
+                })
             }
         }
 
@@ -118,7 +127,7 @@ class NavListFragment : Fragment() {
                 listNameEditText.setText(it.name)
                 colorView.colorValue = it.color
                 mSelectedColor = it.color
-                listInfo = it
+                todoList = it
             })
         }
 

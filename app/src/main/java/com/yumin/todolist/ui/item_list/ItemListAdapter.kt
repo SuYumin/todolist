@@ -7,15 +7,17 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.yumin.todolist.LogUtils
 import com.yumin.todolist.R
-import com.yumin.todolist.data.ItemInfo
+import com.yumin.todolist.data.TodoItem
 
 
 class ItemListAdapter(clickListener: ItemClickListener?) :
-    ListAdapter<ItemInfo, ItemListAdapter.ViewHolder>(DiffCallBack()) {
+    ListAdapter<TodoItem, ItemListAdapter.ViewHolder>(DiffCallBack()) {
     var mEnableLimitSize: Boolean = false
     var mEnableTextGrayOut: Boolean = false
     var mDisableCheckBox: Boolean = false
@@ -39,7 +41,7 @@ class ItemListAdapter(clickListener: ItemClickListener?) :
             super.getItemCount()
     }
 
-    override fun submitList(list: List<ItemInfo>?) {
+    override fun submitList(list: List<TodoItem>?) {
         super.submitList(list?.let { ArrayList(it) })
     }
 
@@ -52,15 +54,15 @@ class ItemListAdapter(clickListener: ItemClickListener?) :
         val mTitle: TextView = itemView.findViewById(R.id.title)
         val mCheckBox: CheckBox = itemView.findViewById(R.id.item_check_box)
 
-        fun setCheckBoxClickListener(itemInfo: ItemInfo, itemListener: ItemClickListener) {
+        fun setCheckBoxClickListener(todoItem: TodoItem, itemListener: ItemClickListener) {
             mCheckBox.setOnClickListener {
-                itemListener.onCheckBoxClick(mCheckBox.isChecked, itemInfo)
+                itemListener.onCheckBoxClick(mCheckBox.isChecked, todoItem)
             }
         }
 
-        fun setItemLayoutClickListener(itemInfo: ItemInfo, itemListener: ItemClickListener) {
+        fun setItemLayoutClickListener(todoItem: TodoItem, itemListener: ItemClickListener) {
             mItemLayout.setOnClickListener {
-                itemListener.onItemLayoutClick(itemInfo)
+                itemListener.onItemLayoutClick(todoItem)
             }
         }
     }
@@ -76,7 +78,7 @@ class ItemListAdapter(clickListener: ItemClickListener?) :
 
     // Replace the contents of a view (invoked by the layout manager)
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        Log.d(TAG, "[onBindViewHolder] position =${position}, item = ${getItem(position)}")
+        LogUtils.logD(TAG, "[onBindViewHolder] position =${position}, item = ${getItem(position)}")
 
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
@@ -94,16 +96,16 @@ class ItemListAdapter(clickListener: ItemClickListener?) :
 }
 
 interface ItemClickListener {
-    fun onCheckBoxClick(isChecked: Boolean, itemInfo: ItemInfo)
-    fun onItemLayoutClick(itemInfo: ItemInfo)
+    fun onCheckBoxClick(isChecked: Boolean, todoItem: TodoItem)
+    fun onItemLayoutClick(todoItem: TodoItem)
 }
 
-class DiffCallBack : DiffUtil.ItemCallback<ItemInfo>() {
-    override fun areItemsTheSame(oldItem: ItemInfo, newItem: ItemInfo): Boolean {
-        return oldItem.id == newItem.id
+class DiffCallBack : DiffUtil.ItemCallback<TodoItem>() {
+    override fun areItemsTheSame(oldTodoItem: TodoItem, newTodoItem: TodoItem): Boolean {
+        return oldTodoItem.id == newTodoItem.id
     }
 
-    override fun areContentsTheSame(oldItem: ItemInfo, newItem: ItemInfo): Boolean {
-        return oldItem == newItem
+    override fun areContentsTheSame(oldTodoItem: TodoItem, newTodoItem: TodoItem): Boolean {
+        return oldTodoItem == newTodoItem
     }
 }

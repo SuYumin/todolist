@@ -1,7 +1,6 @@
 package com.yumin.todolist.ui.item_list
 
 import android.app.Activity
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -18,51 +17,52 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import com.yumin.todolist.MainActivity
-import com.yumin.todolist.R
-import com.yumin.todolist.TodoListApplication
-import com.yumin.todolist.ViewModelFactory
-import com.yumin.todolist.data.ItemInfo
-import com.yumin.todolist.data.ListInfo
+import com.yumin.todolist.data.TodoItem
+import com.yumin.todolist.data.TodoList
 import com.yumin.todolist.ui.color_view.ColorView
 import com.yumin.todolist.ui.navigation_list.NavListAdapter
+import android.view.WindowManager.LayoutParams
+import com.yumin.todolist.*
 
 
-class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClickListener, MainActivity.DrawerLayoutStateListener {
+class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClickListener {
     private lateinit var mUnCompleteRecyclerView: RecyclerView
     private lateinit var mUnCompleteItemAdapter: ItemListAdapter
     private lateinit var mFab: FloatingActionButton
-    private var mSnackBar: Snackbar? = null
     private lateinit var mListName: TextView
     private lateinit var mListColorView: ColorView
     private lateinit var mCompleteRecyclerView: RecyclerView
     private lateinit var mCompleteItemAdapter: ItemListAdapter
     private lateinit var mCompleteLinearLayout: LinearLayout
     private lateinit var mRootView: View
-    private lateinit var mListInfo: ListInfo
-    private lateinit var mListInfoList: List<ListInfo>
+    private lateinit var mListInfo: TodoList
+    private lateinit var mListInfoList: List<TodoList>
     private lateinit var mNoItemLayout: ConstraintLayout
     private val mTodoListViewModel: ItemListViewModel by viewModels {
-        ViewModelFactory((activity?.application as TodoListApplication).repository)
+        ViewModelFactory(
+            (activity?.application as TodoListApplication).roomRepository,
+            (activity?.application as TodoListApplication).firebaseRepository
+        )
     }
     private var mChosenListId: Int = 0
     private var mTempEditListId: Int = -1
 
     companion object {
-//        var LIST_ID: Int = 0
-//        var TEMP_LIST_ID: Int = -1
         val TAG: String = ItemListFragment.javaClass.toString()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        (activity as MainActivity).setOnRefreshHomeListener(this)
-        (activity as MainActivity).setUpDrawerLayoutState(this)
+        (activity as MainActivity).setOnRefreshListener(this)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val root = inflater.inflate(R.layout.fragment_todo_list, container, false)
         // check has bundle or not
         arguments?.apply {
@@ -76,7 +76,7 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.main,menu)
+        inflater.inflate(R.menu.main, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -85,12 +85,12 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
             R.id.action_edit_list -> {
                 var bundle = Bundle()
                 bundle.putInt(MainActivity.KEY_CHOSEN_LIST_ID, mChosenListId)
-                findNavController().navigate(R.id.nav_add_list,bundle)
+                findNavController().navigate(R.id.nav_add_list, bundle)
                 return true
             }
             R.id.action_delete_list -> {
                 mTodoListViewModel.deleteList(mChosenListId)
-                findNavController().navigateUp()
+                findNavController().navigate(R.id.nav_home)
                 return true
             }
         }
@@ -101,25 +101,25 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
         mFab = root.findViewById(R.id.fab)
         mFab.setOnClickListener { view ->
             mFab.hide()
-            createEditItemSnackBar(view,null)
+            createBottomSheetDialog(null)
         }
 
         // handle press back key
         (activity as AppCompatActivity).onBackPressedDispatcher.addCallback(viewLifecycleOwner,
-            object: OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (mSnackBar?.isShown == true) {
-                    mSnackBar?.dismiss()
-                    mFab.show()
-                } else {
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
                     if (mFab.isOrWillBeShown)
                         mFab.hide()
                     findNavController().navigateUp()
                 }
-            }})
+            })
 
         mUnCompleteRecyclerView = root.findViewById(R.id.uncomplete_recyclerView)
-        mUnCompleteRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        mUnCompleteRecyclerView.layoutManager = LinearLayoutManager(
+            context,
+            LinearLayoutManager.VERTICAL,
+            false
+        )
         val itemAnimator = DefaultItemAnimator()
         itemAnimator.addDuration = 500
         itemAnimator.removeDuration = 500
@@ -130,7 +130,11 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
         mListColorView = root.findViewById(R.id.list_color)
 
         mCompleteRecyclerView = root.findViewById(R.id.complete_recyclerView)
-        mCompleteRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        mCompleteRecyclerView.layoutManager = LinearLayoutManager(
+            context,
+            LinearLayoutManager.VERTICAL,
+            false
+        )
         val completeItemAnimator = DefaultItemAnimator()
         completeItemAnimator.addDuration = 500
         completeItemAnimator.removeDuration = 500
@@ -160,7 +164,6 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
     private fun observeViewModel(){
         mTodoListViewModel.updateTodoListQueryId(mChosenListId)
         mTodoListViewModel.unCompleteTodoItemList.observe(viewLifecycleOwner, Observer {
-            Log.d(TAG,"it.isNullOrEmpty() = ${it.isNullOrEmpty()}")
 
             if (!it.isNullOrEmpty())
                 mUnCompleteRecyclerView.visibility = View.VISIBLE
@@ -168,8 +171,8 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
                 mUnCompleteRecyclerView.visibility = View.GONE
 
             it?.apply {
-                val newList = mutableListOf<ItemInfo>()
-                Log.d(TAG,"unCompleteTodoItemList size = ${it.size} , toString = ${it.toString()}")
+                val newList = mutableListOf<TodoItem>()
+                LogUtils.logD(TAG, "unCompleteTodoItemList size = ${it.size} , toString = ${it.toString()}")
                 newList.addAll(it)
                 newList.reverse()
                 mUnCompleteItemAdapter.submitList(newList)
@@ -177,16 +180,14 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
             }
         })
 
-        mTodoListViewModel.completeTodoItemList.observe(viewLifecycleOwner,{
-            Log.d(TAG,"completeTodoItemList  "+it.isNullOrEmpty())
-
+        mTodoListViewModel.completeTodoItemList.observe(viewLifecycleOwner, {
             if (!it.isNullOrEmpty())
                 mCompleteLinearLayout.visibility = View.VISIBLE
             else
                 mCompleteLinearLayout.visibility = View.GONE
 
             it?.apply {
-                val newList = mutableListOf<ItemInfo>()
+                val newList = mutableListOf<TodoItem>()
                 newList.addAll(it)
                 newList.reverse()
                 mCompleteItemAdapter.submitList(newList)
@@ -195,7 +196,7 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
         })
 
 
-        mTodoListViewModel.todoItemList.observe(viewLifecycleOwner,{
+        mTodoListViewModel.todoItemList.observe(viewLifecycleOwner, {
             if (it.isNullOrEmpty())
                 mNoItemLayout.visibility = View.VISIBLE
             else
@@ -203,15 +204,15 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
         })
 
         mTodoListViewModel.updateListInfoQueryId(mChosenListId)
-        mTodoListViewModel.listInfo.observe(viewLifecycleOwner,{
-            it?.apply{
+        mTodoListViewModel.listInfo.observe(viewLifecycleOwner, {
+            it?.apply {
                 mListName.text = it?.name
                 mListColorView.colorValue = it?.color
                 mListInfo = this
             }
         })
 
-        mTodoListViewModel.listItemList?.observe(viewLifecycleOwner,{
+        mTodoListViewModel.listItemTodoList?.observe(viewLifecycleOwner, {
             mListInfoList = it
         })
     }
@@ -230,91 +231,6 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
         mCompleteItemAdapter.submitList(null)
         updateDataSetByListId(refreshListId)
         updateListNameByListId(refreshListId)
-        if (mSnackBar?.isShownOrQueued == true)
-            mSnackBar?.dismiss()
-    }
-
-    private fun createEditItemSnackBar(view: View, itemInfo: ItemInfo?){
-        mSnackBar = Snackbar.make(view, "", Snackbar.LENGTH_INDEFINITE)
-
-        val snackBarLayout: Snackbar.SnackbarLayout = mSnackBar?.view as Snackbar.SnackbarLayout
-        val textView: TextView = snackBarLayout.findViewById(R.id.snackbar_text)
-        textView.visibility = View.INVISIBLE
-
-        // inflate custom view
-        val customSnackBarLayout: View = this.layoutInflater.inflate(R.layout.custom_snackbar_layout, null)
-        val nameEditText: EditText = customSnackBarLayout.findViewById(R.id.title_edit_text)
-        itemInfo?.apply{
-            nameEditText.setText(itemInfo.name)
-        }
-
-        val checkImageView: ImageView = customSnackBarLayout.findViewById(R.id.check_image_view)
-        checkImageView.setOnClickListener {
-            if (nameEditText.text.isNullOrEmpty()) {
-                Toast.makeText(activity, "請輸入項目", Toast.LENGTH_SHORT).show()
-            } else {
-                Log.d(TAG, "[checkImageView] TEMP_LIST_ID = ${mTempEditListId}, titleEditText.text.toString() = " + nameEditText.text.toString())
-                if (itemInfo != null) {
-                    var newItemInfo:ItemInfo = itemInfo.copy()
-                    newItemInfo.name = nameEditText.text.toString()
-
-                    if (mTempEditListId != -1)
-                        newItemInfo.listId = mTempEditListId
-
-                    mTodoListViewModel.updateTodoItem(newItemInfo)
-                } else {
-                    mTodoListViewModel.insertTodoItem(
-                        ItemInfo(name = nameEditText.text.toString(), listId = mListInfo.id)
-                    )
-                }
-                activity?.let { it1 -> hideSoftKeyboard(it1) }
-                mSnackBar?.dismiss()
-                mFab.show()
-            }
-        }
-
-        itemInfo?.apply{
-            val listInfoLayout: ConstraintLayout = customSnackBarLayout.findViewById(R.id.list_info_view)
-            val listName: TextView = customSnackBarLayout.findViewById(R.id.list_name)
-            val listColorView: ColorView = customSnackBarLayout.findViewById(R.id.list_color)
-            mListInfo?.apply {
-                listName.text = this.name
-                listColorView.colorValue = this.color
-            }
-            listInfoLayout.visibility = View.VISIBLE
-            listInfoLayout.setOnClickListener {
-                // show view to edit move to other list
-                activity?.apply{
-                    val inflater = this.layoutInflater
-                    val view: View = inflater?.inflate(R.layout.dialog_list_view,null)
-                    val alertDialog = createListDialog(view)
-                    val listView = view.findViewById<ListView>(R.id.list_view)
-                    val navListAdapter = NavListAdapter(activity as Activity,mListInfoList)
-                    listView.adapter = navListAdapter
-                    listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, position, id ->
-                        mListInfoList[position].apply {
-                            mTempEditListId = this.id
-                            // update list info temporary
-                            listName.text = this.name
-                            listColorView.colorValue = this.color
-                        }
-                        alertDialog?.dismiss()
-                    }
-                    alertDialog?.show()
-                }
-            }
-
-            val deleteItems: ImageView = customSnackBarLayout.findViewById(R.id.delete_item)
-            deleteItems.visibility = View.VISIBLE
-            deleteItems.setOnClickListener{
-                mTodoListViewModel.deleteItem(itemInfo)
-            }
-        }
-
-        snackBarLayout.setPadding(0, 0, 0, 50)
-        snackBarLayout.addView(customSnackBarLayout, 0)
-        snackBarLayout.setBackgroundColor(Color.WHITE)
-        mSnackBar?.show()
     }
 
     private fun createListDialog(customView: View): AlertDialog? {
@@ -326,39 +242,116 @@ class ItemListFragment : Fragment(), MainActivity.RefreshListListener, ItemClick
         }
     }
 
+    private fun createBottomSheetDialog(todoItem: TodoItem?){
+        val bottomSheetDialog: BottomSheetDialog? = activity?.let { BottomSheetDialog(it,R.style.BottomSheetDialogStyle) }
+        bottomSheetDialog?.apply {
+            val view: View = LayoutInflater.from(activity).inflate(
+                R.layout.custom_snackbar_layout,
+                null
+            )
+            bottomSheetDialog.setContentView(view)
+
+            val nameEditText: EditText = view.findViewById(R.id.title_edit_text)
+            nameEditText.requestFocus()
+
+            todoItem?.apply{
+                nameEditText.setText(todoItem.name)
+            }
+
+            val checkImageView: ImageView = view.findViewById(R.id.check_image_view)
+            checkImageView.setOnClickListener {
+                if (nameEditText.text.isNullOrEmpty()) {
+                    Toast.makeText(activity, "請輸入項目", Toast.LENGTH_SHORT).show()
+                } else {
+                    if (todoItem != null) {
+                        var newItemInfo:TodoItem = todoItem.copy()
+                        newItemInfo.name = nameEditText.text.toString()
+
+                        if (mTempEditListId != -1)
+                            newItemInfo.listId = mTempEditListId
+
+                        mTodoListViewModel.updateTodoItem(newItemInfo)
+                    } else {
+                        mTodoListViewModel.insertTodoItem(
+                            TodoItem(name = nameEditText.text.toString(), listId = mListInfo.id, createdTime = System.currentTimeMillis())
+                        )
+                    }
+                    activity?.let { it1 -> hideSoftKeyboard(it1) }
+                    bottomSheetDialog.dismiss()
+                    mFab.show()
+                }
+            }
+
+            todoItem?.apply{
+                val listInfoLayout: ConstraintLayout = view.findViewById(R.id.list_info_view)
+                val listName: TextView = view.findViewById(R.id.list_name)
+                val listColorView: ColorView = view.findViewById(R.id.list_color)
+                mListInfo?.apply {
+                    listName.text = this.name
+                    listColorView.colorValue = this.color
+                }
+                listInfoLayout.visibility = View.VISIBLE
+                listInfoLayout.setOnClickListener {
+                    // show view to edit move to other list
+                    activity?.apply{
+                        val inflater = this.layoutInflater
+                        val view: View = inflater?.inflate(R.layout.dialog_list_view, null)
+                        val alertDialog = createListDialog(view)
+                        val listView = view.findViewById<ListView>(R.id.list_view)
+                        val navListAdapter = NavListAdapter(activity as Activity, mListInfoList)
+                        listView.adapter = navListAdapter
+                        listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, position, id ->
+                            mListInfoList[position].apply {
+                                mTempEditListId = this.id
+                                // update list info temporary
+                                listName.text = this.name
+                                listColorView.colorValue = this.color
+                            }
+                            alertDialog?.dismiss()
+                        }
+                        alertDialog?.show()
+                    }
+                }
+
+                val deleteItems: ImageView = view.findViewById(R.id.delete_item)
+                deleteItems.visibility = View.VISIBLE
+                deleteItems.setOnClickListener{
+                    mTodoListViewModel.deleteItem(todoItem)
+                    bottomSheetDialog?.dismiss()
+                }
+            }
+        }
+        bottomSheetDialog?.setOnDismissListener {
+            if (mFab.isOrWillBeHidden)
+                mFab.show()
+        }
+        // auto popup a keyboard when open the dialog
+        bottomSheetDialog?.window?.setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        bottomSheetDialog?.show()
+    }
+
     private fun hideSoftKeyboard(activity: Activity) {
         val inputMethodManager: InputMethodManager = activity.getSystemService(
-            Activity.INPUT_METHOD_SERVICE) as InputMethodManager;
+            Activity.INPUT_METHOD_SERVICE
+        ) as InputMethodManager;
         if(inputMethodManager.isAcceptingText){
             inputMethodManager.hideSoftInputFromWindow(activity.currentFocus?.windowToken, 0)
         }
     }
 
-    override fun onCheckBoxClick(isChecked: Boolean, itemInfo: ItemInfo) {
-        Log.d(TAG, "[onCheckBoxClick] todoItem = $itemInfo, isChecked = $isChecked")
+    override fun onCheckBoxClick(isChecked: Boolean, itemInfo: TodoItem) {
+        LogUtils.logD(TAG, "[onCheckBoxClick] todoItem = $itemInfo, isChecked = $isChecked")
         itemInfo.finished = isChecked
         mTodoListViewModel.updateTodoItem(itemInfo)
     }
 
-    override fun onItemLayoutClick(itemInfo: ItemInfo) {
-        Log.d(TAG, "[onItemLayoutClick] todoItem = $itemInfo")
-        // create snack bar to edit item ???? or create a fragment
-        createEditItemSnackBar(mRootView,itemInfo)
+    override fun onItemLayoutClick(todoItem: TodoItem) {
+        LogUtils.logD(TAG, "[onItemLayoutClick] todoItem = $todoItem")
+        createBottomSheetDialog(todoItem)
     }
 
     override fun onStop() {
         super.onStop()
-        if (mSnackBar?.isShownOrQueued == true)
-            mSnackBar?.dismiss()
-        activity?.let { hideSoftKeyboard(it) }
-    }
-
-    override fun isDrawerLayoutOpen() {
-        Log.d(TAG,"[isDrawerLayoutOpen] ")
-        if (mSnackBar?.isShownOrQueued == true) {
-            mSnackBar?.dismiss()
-            mFab.show()
-        }
         activity?.let { hideSoftKeyboard(it) }
     }
 }

@@ -1,6 +1,7 @@
 <resources>
     <string name="facebook_app_id">468703311102621</string>
     <string name="fb_login_protocol_scheme">fb468703311102621</string>
+
     <string name="app_name">TodoList</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -12,10 +13,53 @@
 
     <string name="menu_home">Home</string>
     <string name="menu_list">List</string>
+    <string name="menu_gallery"></string>
+    <string name="menu_slideshow"></string>
     <string name="menu_add_list">Add list</string>
     <string name="default_list">Default list</string>
     <string name="default_all">All items</string>
 
     <string name="add_list_dialog_title">Please add the list name</string>
     <string name="add_list_title_warning">Task name can not be empty!</string>
+
+    <string name="register">Register</string>
+    <string name="forget_password">Forget password</string>
+    <string name="sign_in">Sign in</string>
+    <string name="create_account_password_tint">Should be at least 6 characters</string>
+    <string name="password_title">Password</string>
+    <string name="create_account_email_tint">****@gmail.com</string>
+    <string name="email_title">Email</string>
+    <string name="create_account">Create account</string>
+    <string name="back">Back</string>
+    <string name="reset_email_title">Reset email</string>
+    <string name="reset_password">Reset password</string>
+
+    <string name="nav_backup_restore">Backup / Restore</string>
+
+    <string name="sign_out_dialog">Sign out?</string>
+    <string name="option_yes">Yes</string>
+    <string name="option_no">No</string>
+    <string name="sent_email">The email has been sent</string>
+    <string name="sign_in_warning">Please sign in</string>
+    <string name="email_empty_warning">Email is empty</string>
+    <string name="email_password_empty_warning">Email or password is empty</string>
+    <string name="email_malformed_exception">The email address is malformed</string>
+    <string name="email_exist_exception">There already exists an account with the given email address</string>
+    <string name="sign_in_email_exception">The user account corresponding to email does not exist or has been disabled</string>
+    <string name="sign_in_password_exception">The password is wrong</string>
+
+    <string name="invalid_user_exception">The user account you are trying to sign in to has been disabled.</string>
+    <string name="invalid_credential_exception">The credential is malformed or has expired.</string>
+    <string name="user_collision_exception">There already exists an account with the email address asserted by the credential.</string>
+
+    <string name="backup_title">Backup</string>
+    <string name="last_backup_time">Last backup time: </string>
+    <string name="restore_title">Restore</string>
+    <string name="last_restore_time">Last restore time: </string>
+    <string name="backup_no_data_warning">There is no data can be backup</string>
+    <string name="restore_no_data_warning">There is no data can be restore</string>
+    <string name="backup_clear_warning">Backup data will clear remote server data</string>
+    <string name="restore_clear_warning">Restore data will clear local data</string>
+
+    <string name="setup_network_warning">Please connect to network.</string>
 </resources>

@@ -9,10 +9,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
-@Database(entities = arrayOf(ItemInfo::class,ListInfo::class), version = 1)
+@Database(entities = arrayOf(TodoItem::class,TodoList::class), version = 1)
 abstract class TodoListDatabase : RoomDatabase() {
-    abstract fun getTodoItemDao(): ItemInfoDao
-    abstract fun getListItemDao(): ListInfoDao
+    abstract fun getTodoItemDao(): TodoItemDao
+    abstract fun getListItemDao(): TodoListDao
 
     /**
      * A singleton design pattern is used to ensure that the database instance created is one
@@ -51,7 +51,7 @@ abstract class TodoListDatabase : RoomDatabase() {
                 scope.launch {
                     val listItemDao = database.getListItemDao()
                     // init default list
-                    listItemDao.insert(ListInfo(0,"default list"))
+                    listItemDao.insert(TodoList(name = "default list",createdTime = System.currentTimeMillis()))
                 }
             }
         }

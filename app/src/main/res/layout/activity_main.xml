@@ -57,7 +57,8 @@
                 android:layout_height="1dp"
                 android:background="?android:attr/listDivider" />
 
-            <include layout="@layout/backup_restore_layout"/>
+            <include layout="@layout/backup_restore_layout"
+                android:id="@+id/backup_restore"/>
         </LinearLayout>
     </com.google.android.material.navigation.NavigationView>
 </androidx.drawerlayout.widget.DrawerLayout>

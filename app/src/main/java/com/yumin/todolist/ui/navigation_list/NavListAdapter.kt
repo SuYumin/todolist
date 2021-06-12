@@ -9,13 +9,12 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 import com.yumin.todolist.R
-import com.yumin.todolist.data.ListInfo
+import com.yumin.todolist.data.TodoList
 import com.yumin.todolist.ui.color_view.ColorView
 
-class NavListAdapter(private var activity: Activity, private var dataSet: List<ListInfo>?): BaseAdapter() {
+class NavListAdapter(private var activity: Activity, private var dataSet: List<TodoList>?): BaseAdapter() {
 
-    fun updateDataSet(newDataSet: List<ListInfo>?){
-        Log.d("[NavListAdapter]","updateDataSet = $newDataSet")
+    fun updateDataSet(newDataSet: List<TodoList>?){
         dataSet = newDataSet
         notifyDataSetChanged()
     }
@@ -35,7 +34,7 @@ class NavListAdapter(private var activity: Activity, private var dataSet: List<L
         return dataSet?.size ?: 0
     }
 
-    override fun getItem(position: Int): ListInfo? {
+    override fun getItem(position: Int): TodoList? {
         return dataSet?.get(position)
     }
 

@@ -21,4 +21,24 @@
         android:id="@+id/nav_add_list"
         android:name="com.yumin.todolist.ui.navigation_list.NavListFragment"
         tools:layout="@layout/fragment_add_list" />
+
+    <fragment
+        android:id="@+id/nav_sign_in"
+        android:name="com.yumin.todolist.ui.singin.SignInFragment"
+        tools:layout="@layout/fragment_sign_in"/>
+
+    <fragment
+        android:id="@+id/nav_register"
+        android:name="com.yumin.todolist.ui.singin.RegisterFragment"
+        tools:layout="@layout/fragment_register"/>
+
+    <fragment
+        android:id="@+id/nav_reset_password"
+        android:name="com.yumin.todolist.ui.singin.ResetPasswordFragment"
+        tools:layout="@layout/fragment_reset_password"/>
+
+    <fragment
+        android:id="@+id/nav_backup_restore"
+        android:name="com.yumin.todolist.ui.backup_restore.BackupRestoreFragment"
+        tools:layout="@layout/fragment_backup_restore"/>
 </navigation>
