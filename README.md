@@ -7,3 +7,6 @@
 - [x] Can set to-do items category.
 - [x] Preview all to-do items.
 
+## Images
+
+![todolist](todolist.png)
