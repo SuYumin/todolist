@@ -1,6 +1,7 @@
 # Todolist
 ###### This is my practice android application.
 
+- [x] Add to-do item via floating action button.
 - [x] Can set to-do items category.
 - [x] Preview all to-do items.
 - [x] Offer Google, Facebook, and email account sign-in.
